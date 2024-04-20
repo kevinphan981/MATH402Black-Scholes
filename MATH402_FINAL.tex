@@ -19,33 +19,84 @@
 
 \begin{document}
 
+
 \maketitle
 
 \begin{abstract}
-    The Black-Scholes model and its many variants are a fundamental PDE in continuous-time finance. 
+    The Black-Scholes model and its many variants are a fundamental PDE in 
+    continuous-time finance. As a result, there has been a special focus to the 
+    model in a pedagogical and research perspective. While the Black-Scholes model is not widely used anymore, 
+    it serves as an introduction to the power of mathematics in quantative finance. 
 \end{abstract}
 
 \section{Introduction: Terminology \& Basic Concepts}
 
 Mathematical Finance is a developed applied field in mathematics that attracts many people from the management sciences, social sciences (Economics), physics and mathematics.
 
-The Black Scholes was a model developed by two economists in 1973 that began a revolution in Finance.
-Another individual, Merton had also developed the model using the Feynman-Kac. 
- 
-\begin{definition}[Option]
-What is an option? I have no idea man.
-\end{definition}
+In the world of finance, there are many markets that people can engage in trade in. Stock markets are the most known, 
+but there are also bond markets (usually from the government or institutions like universities), currency markets (foreign exchange), and much more. 
 
-I must take some time to define some finance topics in order to proceed without confusing anyone.
+The market that will be the focus in this paper are \emph{futures} and \emph{options} markets. As markets have become more complicated, people have 
+opted into selling contracts whose value are based off of other assets (such as stocks). These types of contracts are consequently called \emph{financial derivatives}
+due to how they base their value off of other assets. 
+
+
+ 
+\begin{definition}[European Call Option]
+The most simple option where there is a expiration date, 
+where the holder may purchase/sell the underlying asset for some pre-arranged exercise price/strike price.
+\end{definition}
+In particular, there are two types of options that we will cover. One is the 
+\subsection*{The Importance of Options}
+
+So why trade in options when you could trade in stocks, bonds, or something else? 
 
 
 
 \section{Outlining the Black Scholes Model}
+The Black Scholes was a model developed by two economists in 1973 that began a revolution in Finance.
+Another individual, Merton had also developed the model using the Feynman-Kac. 
+
 We begin by outlining some basic concepts about stochastic differential equations and Brownian motion. 
 
-\section{Applied Example Using Python}
+\subsection*{Assumptions}
+Many concepts are contested in finance, the next concept is one of the most contested.
+\begin{definition}[Efficient Market Hypothesis]
+    Markets are efficient enough to the point where no excess profit. There is no opportunity for arbitrage.
+\end{definition}
 
-Here, I will use the formula that we have derived to do a brief numerical example using Python.
+\begin{itemize}
+\item There are no opportunities for arbitrage
+\item There are \emph{risk-free} investments that had a guaranteed returns with no chance of default.\footnote[1]{One may think of government bonds and treasury bills as something that accomplishes this.}
+\end{itemize}
+
+
+\subsection*{Notation}
+
+We will have $V(S,t)$ represent the value of the option (generally). When we discuss call options, we will use $C(S,t)$, and for puts, $P(S,t)$.
+$S$ is the underlying value of the asset (which in this case is usually a stock), and $t$ denotes time.
+
+For a European call option, the Black Scholes Equation is:
+
+\begin{equation}
+    \frac{\partial V}{\partial t} + \frac{1}{2}\sigma^2S^2 \frac{\partial^2 V}{\partial S^2} + rS\frac{\partial V}{\partial S} = 0 
+\end{equation}
+
+% https://www.math.unl.edu/~sdunbar1/TestingMathJax/Lessons/BlackScholes/Solution/solution.html
+% this one actually uses separation of variables
+
+\section*{Conclusion}
+
+The Black-Scholes equation (and model) is a beautiful example of how mathematics can revolutionize a field. 
+However, the Black-Scholes model is not what it is made out to be by many people. To this day, many assumptions involving the model 
+(which I have elected to not cover here due to its specificity) are still unproven. The model is also considerably outdated, with other models being developed
+that implement stochastic calculus. 
+
+All in all. 
+
+% \section{Applied Example Using Python}
+
+% Here, I will use the formula that we have derived to do a brief numerical example using Python.
 
 
 \end{document}
