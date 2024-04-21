@@ -85,6 +85,85 @@ For a European call option, the Black Scholes Equation is:
 % https://www.math.unl.edu/~sdunbar1/TestingMathJax/Lessons/BlackScholes/Solution/solution.html
 % this one actually uses separation of variables
 
+
+% I'm skipping a bunch of things to start writing here, but it will be good
+
+The change of variables contains $V(S,t) = \tilde{V}(\tau, x)$
+\begin{align}
+    \tau &= \frac{\sigma^2(T-t)}{2} \\
+    x &= \log{(\frac{S}{K})}
+\end{align}
+
+We do a change of variables and will compute the derivatives accordingly
+
+\begin{align*}
+    \frac{\partial V}{\partial t} &= K\frac{\partial \tilde{V}}{\partial \tau}
+    \cdot \frac{d\tilde{V}}{dt} \\
+    &= K\frac{\partial \tilde{V}}{\partial \tau} \cdot \frac{-\sigma^2}{2}
+\end{align*}
+
+Of course, there is a second derivative, but I will skip the work the 
+\begin{align*}
+    \frac{\partial^2 V}{\partial S^2} &= \frac{\partial }{\partial S} \frac{\partial V}{\partial S} \\
+    &= K \frac{\partial \tilde{V}}{\partial x} \cdot \frac{-1}{s^2} + K \frac{\partial^2 \tilde{V}}{\partial x^2} \cdot \frac{1}{S^2}
+\end{align*}
+
+The terminal condition is $V(S,t) = \max{(S-K, 0) = \max{(Ke^x - K, 0)}}$
+Additionally, 
+$V(S,T) = K\tilde{V}(x,0)$ so $\tilde{V}(x,0) = \max{(e^x -1)}$
+
+When we substitute the everything from the change of variables (and do a lot of substititions), we will get:
+
+\begin{equation}
+    \frac{\partial \tilde{V}}{\partial \tau} = \frac{\partial^2 \tilde{V}}{\partial x^2} + (k-1)\frac{\partial \tilde{V}}{\partial x} - k\tilde{V}
+\end{equation}
+
+We can now work towards a solution for the heat equation. However, we have to make a change of the dependent variable by
+\begin{equation}
+    \tilde{V} = e^{\alpha x + \beta \tau} u(x,\tau)
+\end{equation}
+
+Using the product rule, we can get a new set of $\tilde{V}$ an their partial derivatives.
+\begin{align}
+    \tilde{V}_{\tau} = \beta e^{\alpha x + \beta \tau} u + e^{\alpha x + \beta \tau} u_{\tau} \\
+    \tilde{V}_{x} = \alpha e^{\alpha x + \beta \tau} u + e^{\alpha x + \beta \tau} u_{x} \\
+\end{align}
+\begin{equation}
+    \tilde{V}_{xx} = \alpha^2 e^{\alpha x + \beta \tau} u + 2\alpha e^{\alpha x + \beta \tau} u_{x} + e^{\alpha x + \beta \tau} u_{xx}. 
+\end{equation}
+
+Now we have to put these into the differential equation and then simplify. 
+S
+
+
+
+\begin{equation}
+    u(x, \tau) = 
+\end{equation}
+
+\subsubsection*{Heat-Equation Solution Representation Formula}
+
+
+
+
+\subsubsection*{Solution and the Black Scholes Formula}
+
+
+And finally, we have approached the solution of the Black-Scholes equation, arriving at a formula. 
+\begin{equation}
+    V(S,t) = S\Phi \frac{\log{(S/K)} + (r + \sigma^2/2)(T-t)}{\sigma \sqrt{T-t}}
+    - Ke^{r(T-t)} \Phi \frac{\log{(\frac{S}{K})} + (r-\sigma^{2}/2)(T-t)}{\sigma \sqrt{T-t}}
+\end{equation}
+
+Though this solution is extremely long and usually isn't seen in popular depictions of the formula. 
+
+
+
+% \section{Applied Example Using Python}
+
+% Here, I will use the formula that we have derived to do a brief numerical example using Python.
+
+
 \section*{Conclusion}
 
 The Black-Scholes equation (and model) is a beautiful example of how mathematics can revolutionize a field. 
@@ -93,10 +172,6 @@ However, the Black-Scholes model is not what it is made out to be by many people
 that implement stochastic calculus. 
 
 All in all. 
-
-% \section{Applied Example Using Python}
-
-% Here, I will use the formula that we have derived to do a brief numerical example using Python.
 
 
 \end{document}
