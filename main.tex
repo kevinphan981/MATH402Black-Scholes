@@ -1,0 +1,436 @@
+\documentclass{article}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage[margin = 1.25in]{geometry}
+\usepackage{multicol}
+\usepackage{float}
+\usepackage[sorting = none, backend = biber, style = numeric]{biblatex} %sorting = none makes it list based on order of appearance
+
+\usepackage{verbatim}
+\usepackage{url}
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{corollary}{Corollary}[theorem]
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{definition}{Definition}[section]
+\renewcommand\qedsymbol{$\blacksquare$}
+
+
+\title{The Black-Scholes Model}
+\author{Kevin Phan}
+\date{February 2024}
+
+\addbibresource{MATH402-Final.bib} %bibtex method
+
+
+
+% regular bib method.
+%\bibliography{MATH402-Final} % was it the spaces the entire time???? this is a biblatex file too... is that a problem?
+%\bibliographystyle{plain}
+
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+    The Black-Scholes model is a fundamental partial differential equation in 
+    continuous-time finance. I outline the fundamental concepts that lie behind the Black-Scholes and options trading, 
+    then solve the Black-Scholes equation using a change of variables approach.
+    After, I discuss the Black-Scholes formula and how it is used in finance. 
+\end{abstract}
+
+\section{Introduction: Terminology \& Basic Concepts}
+
+Mathematical Finance is a developed applied field in mathematics that attracts many people from the management sciences, social sciences (Economics), physics and mathematics.
+
+In the world of finance, there are many markets that people can engage in trade in. Stock markets are the most known, 
+but there are also bond markets (usually from the government or institutions like universities), currency markets (foreign exchange), and much more. 
+
+The market that will be the focus in this paper are \emph{futures} and \emph{options} markets. As markets have become more complicated, people have 
+opted into selling contracts whose value are based off of other assets (such as stocks). These types of contracts are consequently called \emph{financial derivatives}
+due to how they base their value off of other assets. 
+
+\begin{definition}[European Call Option]
+The most simple option where there is an expiration date, 
+where the holder may purchase/sell the underlying asset for some pre-arranged exercise price/strike price.
+\end{definition}
+In particular, there are two types of options that we will cover. One is the call option and the other is the put option. The call option is when the contract involves an asset to be bought,
+and a put option deals with the right to sell the asset. \cite{wilmott_mathematics_1995}
+
+\subsubsection*{Call Options}
+I'll give a small example to show how call options work. 
+Suppose we have the choice to purchase a call option that has these conditions outlined.
+\begin{itemize}
+\item Date: May 1, 2024 
+\item Holder may purchase one share of AAPL (Apple)
+\item Strike Price: \$150USD
+\item Price of the Option: \$20USD
+\end{itemize}
+
+Suppose on May 1st, Apple will release a new iPhone with infinite battery life. 
+The stock of Apple would skyrocket to \$250, and investors that had previously invested in Apple would enjoy a large gain.
+However, holding Apple stock can be disadvantageous (say, when the stock depreciates in price), 
+and so if you bought an option in April anticipating the growth (perhaps through insider trading or dumb luck)
+then you can cash in on the option.
+
+If you bought the option, and then exercised the option (meaning you bought the underlying stock, AAPL), 
+then you would pay a total of \$170 USD (option price + strike price) to buy the option and the stock.
+
+If you immediately sell the AAPL stock on May 1st, you would gain a profit of $\$250-\$170 = \$80$. 
+
+\subsubsection*{Put Options}
+Put options can be interpreted as the opposite of call options. Let's continue with the previous example of the AAPL stock,
+but now we are in July 1st. After having a profitable campaign selling the new iPhone, EU has sued AAPL for anticompetitive behavior, 
+driving down the stock price of AAPL from \$250 to \$170. 
+
+Thankfully, we were able to get our hands onto a put option to make the best out of this situation.
+\begin{itemize}
+\item Date: July 1st, 2024
+\item Holder may sell one share of AAPL (Apple)
+\item Strike Price: \$220 USD
+\item Price of Option: \$30 USD
+\end{itemize}
+
+Once we exercise this put option, then we would spend a total of \$30 
+to obtain the option. If we exercise the put option and buy the stock (which is now \$170 after the EU lawsuit),
+then we would have a total spend of \$200. However, we can quickly flip the asset in order to make a profit, by selling it for the prescribed \$220. 
+Thus, we make a \$20 in profit from a situation that would be a loss for most investors.
+
+
+\subsection*{The Importance of Options}
+Options are extremely useful for investors due to their ability to hedge and speculate. 
+
+Hedging is when an investor covers their losses using other assets that increase in value. A common example is the mutual fund, which is composed
+of the stocks of hundreds to thousands of companies in order to deal with the potential losses in a specific company or industry. The same can be done with options.
+For the case of a call option, if the stock does not appreciate in price (let's say that the new iPhone was garbage), then the investor could just not exercise the option and take a loss of \$30.
+While this is bad, it is much better than buying the stock for \$170 and then seeing the stock value drop. 
+
+The speculative potential of options is apparent. The investor is betting money on whether the asset value will increase (for call options) or will drop (put options). Thus, there is a elevated risk when it comes to options compared to other assets.
+
+
+
+
+\section{Outlining the Black Scholes Model}
+The Black Scholes was a model developed by two economists in 1973 that began a revolution in Finance. Another individual, Merton had also developed the model using the Feynman-Kac formula. All three later won a Nobel Prize in Economics for their work in on the model.
+
+The Black-Scholes model is built upon Brownian motion (a topic in stochastic processes and stochastic differential equations). This is because geometric Brownian motion (the Wiener process) can model asset prices well, given that they have some randomness to them (think of how erratic stocks can be). I will briefly mention the importance of these concepts here, but we will not need to use any other techniques than what we have learned in class or can present here. \cite{yoo_stochastic_2017}
+
+\subsection*{Assumptions}
+Many concepts are contested in finance, but the next concept is one of the most contested.
+\begin{definition}[Efficient Market Hypothesis]
+    Markets are efficient enough to the point where no excess profit. There is no opportunity for arbitrage. Meaning they cannot simply buy and resell some random asset for a profit.
+\end{definition}
+Additionally, there are more specific assumptions that the model makes.
+\begin{itemize}
+\item There are no opportunities for arbitrage
+\item There are \emph{risk-free} investments that had a guaranteed returns with no chance of default.
+\item The asset price follows a lognormal random walk.
+\item The risk-free interest rate and the asset volatility are known over the entire time of the option.
+\end{itemize}
+
+In simple words, arbitrage is when an individual buys a good at a cheap price and sells it for a higher price, making profit while doing very little work. A well-known example of this is drop-shipping, the act of buying goods from manufacturers or other sites for a low price (Alibaba, Temu, etc.), then reselling them on platforms that sell at a higher price (Amazon, Etsy, etc.).
+
+Interest rates don't necessarily exist in stocks, bonds, and other asset classes. We traditionally think of interest when dealing with savings accounts, loans, and mortgages. However, certain 
+assets (such as government bonds) have a fixed rate of return, which acts similarly to an interest rate we may see in our personal lives.
+
+\subsection*{Notation}
+
+
+
+We will have $V(S,t)$ represent the value of the option (generally). When we discuss call options, we will use $C(S,t)$, and for puts, $P(S,t)$.
+$S$ is the underlying value of the asset (which in this case is usually a stock), and $t$ denotes time.
+\begin{itemize}
+    \item $\sigma$, volatility of the underlying asset
+    \item $E$, the exercise/strike price
+    \item $T$, the expiry date (when you can exercise the option)
+    \item $r$, the risk-free interest rate
+    \end{itemize}
+
+For a European call option, the Black Scholes Equation is:
+
+\begin{equation}
+    \frac{\partial V}{\partial t} + \frac{1}{2}\sigma^2S^2 \frac{\partial^2 V}{\partial S^2} + rS\frac{\partial V}{\partial S} = 0 
+\end{equation}
+
+% https://www.math.unl.edu/~sdunbar1/TestingMathJax/Lessons/BlackScholes/Solution/solution.html
+% this one actually uses separation of variables/change of variables.
+
+We also have to consider the initial data where $V(0,t) = 0$ and $V(S,t) ~ S$ as $S \to \infty$
+Finally, when $V(S,T) = \max{(K-S,0)}$
+
+
+\section*{Solution of the Black-Scholes Equation}
+
+\subsubsection*{Heat-Equation Solution Representation Formula}
+% I'm pretty sure it is the solution to one of these initial value problems
+% if we have 
+
+We'll have to take a step back towards the regular heat equation and derive a general solution that we will use later. Suppose,
+\begin{equation}
+    u_{\tau} = u_{xx}, \text{ where }u(x,0) = u_{0}(x)
+\end{equation}
+Where $x \in \mathbb{R} $ and $\tau \ge 0$. $\tau$ in this case is the time variable to avoid confusion down the line.
+\\
+If we impose further requirements on the system: 
+\begin{itemize}
+\item $u_0(x)$ only has a finite number of jump discontinuities
+\item $lim_{|x| \to \infty} u_{0}(x)e^{-ax^2} = 0$  for any $a > 0$ 
+\item $lim_{|x| \to \infty} u(x, \tau)e^{-ax^2} = 0$  for any $a > 0$ 
+\end{itemize} 
+While the additional conditions are not necessary to achieve the equation that we will get, it is important in general for mathematical finance. We can solve this equation using Fourier transformations. \cite{steven_r_dunbar_solution_2009}
+
+If we use the Dirac delta function and set $u(x,0) = \delta(x)$, then we can obtain the fundamental solution of the heat equation (see Appendix). This is also called the \emph{heat kernel}.
+
+\begin{align*}
+    \Phi(x,\tau) = \frac{1}{\sqrt{4\pi \tau}} exp(\frac{-x^2}{4\tau})
+\end{align*}
+
+Then to get the general solution of the heat equation, can insert $\Phi(x, \tau)$ into:
+\begin{align*}
+    u(x, \tau) &= \int_{-\infty}^{\infty} u_0(s) \Phi(x, \tau) ds \\
+    u(x, \tau) &= \frac{1}{2\sqrt{\pi \tau}} \int_{-\infty}^{\infty} u_0(s) \exp(\frac{-(x-s)^2}{4\tau}) ds
+\end{align*}
+
+We will use this later when we have to solve after applying the change of dependent variable. \nocite{mahaffy_math_2020}
+
+
+\subsection*{Solving the Black-Scholes with Change of Variables}
+
+
+We do a change of variables and will compute the derivatives accordingly
+
+
+% I'm skipping a bunch of things to start writing here, but it will be good
+
+The change of variables contains $V(S,t) = \tilde{V}(x, \tau)$
+\begin{align}
+    \tau &= \frac{\sigma^2(T-t)}{2} \\
+    x &= \log{(\frac{S}{K})}
+\end{align}
+
+\newcommand*{\tilv}{\tilde{V}} % make my life easier.
+
+
+\begin{align*}
+    \frac{\partial V}{\partial t} &= K\frac{\partial \tilde{V}}{\partial \tau}
+    \cdot \frac{d\tilde{V}}{dt} \\
+    &= K\frac{\partial \tilde{V}}{\partial \tau} \cdot \frac{-\sigma^2}{2}
+\end{align*}
+
+Of course, there is a second derivative, but I will skip the work the 
+\begin{align*}
+    \frac{\partial^2 V}{\partial S^2} &= \frac{\partial }{\partial S} \frac{\partial V}{\partial S} \\
+    &= K \frac{\partial \tilde{V}}{\partial x} \cdot \frac{-1}{s^2} + K \frac{\partial^2 \tilde{V}}{\partial x^2} \cdot \frac{1}{S^2}
+\end{align*}
+
+The terminal condition is $V(S,t) = \max{(S-K, 0) = \max{(Ke^x - K, 0)}}$
+Additionally, 
+$V(S,T) = K\tilde{V}(x,0)$ so $\tilde{V}(x,0) = \max{(e^x -1)}$
+
+When we substitute the everything from the change of variables (and do a lot of substititions), we will get:
+
+\begin{equation}
+    \frac{\partial \tilde{V}}{\partial \tau} = \frac{\partial^2 \tilde{V}}{\partial x^2} + (k-1)\frac{\partial \tilde{V}}{\partial x} - k\tilde{V}
+\end{equation}
+
+We can now work towards a solution for the heat equation. However, we have to make a change of the dependent variable by
+\begin{equation}
+    \tilde{V}(x, \tau) = e^{\alpha x + \beta \tau} u(x,\tau)
+\end{equation}
+
+With this, we can get a new set of $\tilde{V}$ and their partial derivatives.
+\begin{align*}
+    \tilde{V}_{\tau} = \beta e^{\alpha x + \beta \tau} u + e^{\alpha x + \beta \tau} u_{\tau} \\
+    \tilde{V}_{x} = \alpha e^{\alpha x + \beta \tau} u + e^{\alpha x + \beta \tau} u_{x}
+\end{align*}
+\begin{equation}
+    \tilde{V}_{xx} = \alpha^2 e^{\alpha x + \beta \tau} u + 2\alpha e^{\alpha x + \beta \tau} u_{x} + e^{\alpha x + \beta \tau} u_{xx}. 
+\end{equation}
+
+
+Now we have to put these into the differential equation and then simplify. The $e^{\alpha x + \beta \tau}$ should cancel out in this. 
+
+\begin{equation}
+    \beta u + u_{\tau} = \alpha^2 u + 2\alpha u_{x} + 2\alpha u_{x} + u_{xx} + (k-1)(\alpha u + u_{x}) - ku
+\end{equation}
+
+If we simplify things here, we can see that we are able to get a much more nicer heat equation. We still don't know what $\alpha$ or $\beta$ are, but will soon find out.
+
+\begin{align*}
+    u_{\tau} = u_{xx} + \left[ 2\alpha + (k-1) \right]u_{x} + \left[ \alpha^2 + (k-1)(\alpha)-k-\beta \right]u
+\end{align*}
+
+Now we have two expressions that can be used to get $\alpha$ and $\beta$. 
+
+\begin{gather*}
+    \alpha =  \frac{-(k-1)}{2} \\
+    \beta = \alpha^2 + (k-1)\alpha - k = \frac{-(k+1)^2}{4}
+\end{gather*}
+
+Since we have transformed the heat equation, we also need to transform the initial condition. Recall that $\tilv(x,0) = \max{(e^x-1, 0)}$
+When we consider $V(x,0)$, we have to now consider the change of dependent variable $\tilv(x,\tau) = e^{\alpha x + \beta \tau}u(x, \tau)$.
+
+
+
+
+Thus we can solve for our $u(x,0)$, % I should probably rewrite with fractions.
+\begin{align*}
+    u(x,0) &= \exp((-(k-1)/2)x + ((k+1)^2 / 4)\cdot 0) \cdot \tilv(x,0) \\
+           &= \exp(x(k-1)/2) \max(e^x-1,0) \\
+           &= \max(\exp(x(k+1)/2) - \exp(x(k-1)/2), 0)
+\end{align*}
+Now we see that the function is strictly positive.
+
+
+\subsubsection*{Using the Heat-Equation Representation Formula}
+
+\begin{align}
+    u(x, \tau) = \frac{1}{2\sqrt{\pi \tau}} \int_{-\infty}^{\infty} u_0(s) \exp(\frac{-(x-s)^2}{4\tau}) ds
+\end{align}
+
+This is a challenging integral, and we will have to do another change of variables in order to simplify certain elements.
+Let $z = \frac{s-x}{\sqrt{2\tau}}$. Thus, we $dz = \frac{-1}{\sqrt{2\tau}} dx$. 
+
+Thus, the integral transforms into:
+\begin{align*}
+    u(x,\tau) = \frac{1}{\sqrt{2\pi}} \int_{-\infty}^{\infty} u_{0}(z\sqrt{2\tau} + x)\cdot \exp(\frac{-z^2}{2}) dz
+\end{align*}
+We can split this integral improper integral into two different integrals. Recall that we claimed that $u_0 > 0$, which means that we only need to integrate that portion. 
+For this to be true, $s > 0$, and from the change of variables we specified, we see that $s = z\sqrt{2\tau} + x > 0$ and the value of $z > -x/\sqrt{2\tau}$. 
+
+Thus, since our integral is in terms of $z$, we can make our integration bounds to be $[-x/\sqrt{2\tau}, \infty)$ instead of $(\infty, \infty)$.
+
+When we think of $u_{0}(z\sqrt{2s\tau} + x)$, we can use $\max(\exp(\frac{x(k+1)}{2}) - \exp(\frac{x(k-1)}{2}), 0)$, our initial condition.
+Likewise, we can take the take the maximum and replace $u_{0}(z\sqrt{2\tau} + x)$ in the integral.
+
+\begin{align*}
+    u_0(z\sqrt{2\tau} + x) = \exp(\frac{(k+1)(x+z\sqrt{2\tau})}{2}) - \exp(\frac{(k-1)(x+z\sqrt{2\tau})}{2})
+\end{align*}
+
+Now, once we rewrite everything, we have an integral that is convenient to solve.
+\begin{align*}
+    u(x,\tau) = \frac{1}{\sqrt{2\pi}} \int_{-x/\sqrt{2\tau}}^{\infty} \exp(\frac{(k+1)(x+z\sqrt{2\tau})}{2}) \cdot \exp(\frac{-z^2}{2}) dz\\
+    -\frac{1}{\sqrt{2\pi}} \int_{-x/\sqrt{2\tau}}^{\infty} \exp(\frac{(k-1)(x+z\sqrt{2\tau})}{2}) \cdot \exp(\frac{-z^2}{2}) dz
+\end{align*}
+We will let the first porion of the equation turn into $I_1$, and the second $I_2$. The difference between the two is that $I_1$ has $(k+1)$,
+and $I_2$ has $(k-1)$. We only need to solve for $I_1$, as the solution for $I_2$ is similar with $(k+1)$ being substituted by $(k-1)$.
+
+Starting with $I_1$, we see that the terms in the exponent can simplify by completing the square.
+\begin{equation*}
+     \exp(\frac{(k+1)(x+z\sqrt{2\tau})}{2}) \cdot \exp(\frac{-z^2}{2})
+\end{equation*}
+For the next steps, we will just focus on the terms inside.
+% so we have a problem where I have comflicting agreements on what the completing the square term is.. I think I will have to follow the majority opinion...
+\begin{align*}
+    \frac{(k+1)(x+z\sqrt{2\tau})}{2}) - \frac{z^2}{2} &= \frac{-1}{2}\left( z^2 - z(k+1)\sqrt{2\tau}\right) + \frac{x(k+1)}{2} \\
+    &=  \frac{-1}{2} \left( z^2 - z(k+1)\sqrt{2\tau} + \frac{\tau(k+1)^2}{4}\right) + \frac{x(k+1)}{2} + \frac{\tau(k+1)^2}{4} \\
+    &=  \frac{-1}{2} \left( z - \frac{\sqrt{2\tau}(k+1)}{2} \right)^2 + \frac{x(k+1)}{2} + \frac{\tau(k+1)^2}{4}
+\end{align*}
+Putting it all together,
+\begin{align*}
+    I_1 &= \frac{1}{\sqrt{2\pi}} \int_{-x/\sqrt{2\tau}}^{\infty} \exp(\frac{(k+1)(x+z\sqrt{2\tau})}{2}) \cdot \exp(\frac{-z^2}{2}) dz, \text{ completing the square,}\\
+     &= \frac{\exp(\frac{x(k+1)}{2} + \exp(\frac{\tau(k+1)^2}{4}))}{\sqrt{2\pi}} \int_{-x/\sqrt{2\tau}}^{\infty}
+      \exp\left(\frac{-1}{2} \left( z^2 - \frac{\sqrt{2\tau}(k+1)}{2} \right)\right) 
+\end{align*}
+
+Now we have to do a final change of variables. Let $y = \frac{\sqrt{2\tau}(k+1)}{2}$
+and we can simplify the integral further.
+
+\begin{align*}
+    I_1 &= \frac{\exp(\frac{x(k+1)}{2} + \exp(\frac{\tau(k+1)^2}{4}))}{\sqrt{2\pi}} \int_{-x/\sqrt{2\tau} - \frac{\sqrt{2\tau}(k+1)}{2}}^{\infty} \exp(\frac{-y^2}{2}) dy \\
+    &= \Phi(d_1) \left[\exp(\frac{x(k+1)}{2} + \exp(\frac{\tau(k+1)^2}{4})) \right] 
+\end{align*}
+
+We define $\Phi(d_1)$ to be the cumulative distribution function of a normal probability distribution.
+
+\begin{align*}
+    d_1 &= -x/\sqrt{2\tau} - \frac{\sqrt{2\tau}(k+1)}{2} \\
+    \Phi(d_1) &= \frac{1}{\sqrt{2\tau}} \int_{-\infty}^{d_1} \exp(\frac{-y^2}{2}) dy
+\end{align*}
+
+The solution of $I_2$ is similar to $I_1$ and can be done by replacing every $(k+1)$ with $(k-1)$.
+
+Thus, $u(x, \tau)$
+\begin{align*}
+    u(x, \tau) = \Phi(d_1) \left[\exp(\frac{x(k+1)}{2} + \exp(\frac{\tau(k+1)^2}{4})) \right] - \Phi(d_2) \left[\exp(\frac{x(k-1)}{2} + \exp(\frac{\tau(k-1)^2}{4})) \right]
+\end{align*}
+
+Now we will have to undo the change of variables that we have performed. Firstly, recall that $\tilde{V}(x, \tau) = e^{\alpha x + \beta \tau} u(x,\tau)$, where $\alpha =  \frac{-(k-1)}{2}$ and $\beta = \frac{-(k+1)^2}{4}$. 
+\\ \\
+When we undo $u(x, \tau)$ to get $\tilv(x,\tau)$, we have $\tilv(x,\tau) = e^x \Phi(d_1) - e^{\tau k}\Phi(d_2)$  
+\\
+\\
+Then, we have to re-substitute $x$, $\tau$, and $V(S,t) = \tilv(x,\tau)$. After undoing the change of variables, $d_1$ and $d_2$ is
+\begin{align*}
+    d_1 &= \frac{\log(S/K) + ((r + \sigma^2)/2)(T-t)}{\sigma \sqrt{T-t}} \\
+    d_2&=  \frac{\log(S/K) + ((r - \sigma^2)/2)(T-t)}{\sigma \sqrt{T-t}}
+\end{align*}
+
+\subsection*{Final Solution and the Black Scholes Formula}
+
+
+And finally, we have approached the solution of the Black-Scholes equation, arriving at a formula. 
+\begin{equation}
+    V(S,t) = S\Phi \frac{\log{(S/K)} + (r + \sigma^2/2)(T-t)}{\sigma \sqrt{T-t}}
+    - Ke^{r(T-t)} \Phi \frac{\log{(\frac{S}{K})} + (r-\sigma^{2}/2)(T-t)}{\sigma \sqrt{T-t}}
+\end{equation}
+
+
+Thus, the Black-Scholes formula is:
+\begin{equation}
+    V(S,t) = S \cdot \Phi d_1 - Ke^{-r(T-t)} \cdot \Phi d_2
+\end{equation}
+
+The final solution/formula for the Black-Scholes gives the price of the option that is desirable given 
+its price, expiry date, and the other aforementioned parameters. Because of this, the Black-Scholes model is able to hedge against risk,
+as it gives the investor the price of an option that is worth buying, removing large amounts of risk. 
+
+% \section{Applied Example Using Python}
+% We do this to show how the call or put work with the thing and more motivation behind why the thing is important.
+% % Here, I will use the formula that we have derived to do a brief numerical example using Python.
+
+
+\section*{Conclusion}
+
+The Black-Scholes equation (and model) is a beautiful example of how mathematics can revolutionize a field. 
+Though, many assumptions involving the model are still unproven. The model is also considerably outdated, with other models being developed that implement stochastic calculus. While the Black-Scholes deals with European options, there are American options, Asian options, and Russian options. All of which have their own models and assumptions. In general, the rise of data science has caused many traders to opt in for methods involving regressions and machine learning rather than stochastic calculus.
+
+At first, I was a little intimidated about taking up the Black-Scholes as my final project. I was concerned with the amount of stochastic differential equations (SDEs) that I would have to learn in order to find a solution. However, using a change of variables (while extremely long), did the trick. Another method I could have used was using Green's function after doing a change of variables. \cite{dennis_silverman_solution_1999} Because the solution is very long, I would find myself lost here and there, but I would find my way back and understand what was going on. 
+
+There were many new things that I have learned while doing this project. I was familiar with Fourier transforms, but didn't know that it could be used in this particular case. I also didn't know that you could do multiple change of variables in succession and affect the integration the way that it did in this solution.
+
+In the future, I would like to do a programming example (I had wanted to do it in this document, but it's too long already) with the Black-Scholes, just to visualize it. I would also like to explore the stochastic parts of the equation to better familiarize myself with the fundamental theories underlying the model.
+
+\printbibliography
+
+\section*{Appendix}
+I chose to omit this portion due to how unrelated it is to the main subject of the text. Regardless, it's still an important step in order to get towards our solution.
+
+\subsubsection*{Deriving the Fundamental Solution}
+There are many ways to do this, but I will present a fast way. In order to derive the fundamental solution $\Phi(x, \tau)$, we will claim that 
+\begin{equation*}
+    \Phi(x, \tau) = \tau^{-1/2} \phi(\xi)
+\end{equation*}
+where $\xi = x / \sqrt{\tau}$. The reason why $\tau^{-1/2}$ is there is that the eventual integral $\int_{\infty}^{\infty} u(x,\tau) dx$ is constant for all values $\tau$, the time variable. If we solve for $\phi(\xi)$, we see that this is easy, since the problem can be reduced to an ODE.
+
+For the heat equation,
+\begin{align*}
+    \frac{\partial \Phi}{\partial \tau} &= \frac{-1}{2\tau}\phi'(\xi) \cdot \xi \\
+    \frac{\partial^2 \Phi}{\partial x^2} &= \frac{1}{\tau}\phi''(\xi)
+\end{align*}
+Thus, if there is no constant $k$ as we typically see, then we have the ODE:
+\begin{equation*}
+    \phi'' + \frac{1}{2}\xi \phi' = 0
+\end{equation*}
+Where the solution is $\phi(\xi) = Ce^{-\xi^2 / 4} + D$. We will let $D = 0$ and $C = 1/\sqrt{2\pi}$ to normalize the solution. The reason why these parameters are chosen is because of the need for $\int_{\infty}^{\infty} u dx = 1$. 
+
+Once we have updated $\phi(\xi)$, then we can get $\Phi(x, \tau)$ back by working backwards. This leaves us with the fundamental solution to the heat equation.
+\begin{equation*}
+    \Phi(x, \tau) = \frac{1}{s\sqrt{\pi \tau}}e^{-x^2 / 4\tau}
+\end{equation*}
+
+\end{document}
+
+
